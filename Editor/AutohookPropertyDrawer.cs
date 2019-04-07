@@ -1,14 +1,28 @@
 // NOTE put in a Editor folder
+
+using System;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 [CustomPropertyDrawer(typeof(AutohookAttribute))]
 public class AutohookPropertyDrawer : PropertyDrawer
 {
+    private const BindingFlags BINDIN_FLAGS =  BindingFlags.IgnoreCase 
+                                               | BindingFlags.Public 
+                                               | BindingFlags.Instance
+                                               | BindingFlags.NonPublic;
+
+    private AutohookAttribute AutoHookAttribute
+    {
+        get { return (AutohookAttribute)attribute; }
+    }
+    
+    
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        // First, lets attempt to find a valid component we could hook into this property
-        var component = FindAutohookTarget(property);
+         // First, lets attempt to find a valid component we could hook into this property
+        Component component = FindAutohookTarget(property);
         if (component != null)
         {
             // if we found something, AND the autohook is empty, lets slot it.
@@ -17,19 +31,25 @@ public class AutohookPropertyDrawer : PropertyDrawer
             // this just looks a bit cleaner but isnt particularly safe. YMMV
             if (property.objectReferenceValue == null)
                 property.objectReferenceValue = component;
-            return;
+
+            if (AutoHookAttribute.Visibility == Visibility.Hidden)
+                return;
         }
-        
+
+        bool guiEnabled = GUI.enabled;
+        if (AutoHookAttribute.Visibility == Visibility.Disabled)
+            GUI.enabled = false;
         // havent found one? lets just draw the default property field, let the user manually
         // hook something in.
         EditorGUI.PropertyField(position, property, label);
+        GUI.enabled = guiEnabled;
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         // if theres a valid autohook target we skip drawing, so height is zeroed
-        var component = FindAutohookTarget(property);
-        if (component != null)
+        Component component = FindAutohookTarget(property);
+        if (component != null && AutoHookAttribute.Visibility == Visibility.Hidden)
             return 0;
         
         // otherwise, return its default height (which should be the standard 16px unity usually uses)
@@ -45,16 +65,24 @@ public class AutohookPropertyDrawer : PropertyDrawer
     /// <returns></returns>
     private Component FindAutohookTarget(SerializedProperty property)
     {
-        var root = property.serializedObject;
+        SerializedObject root = property.serializedObject;
 
         if (root.targetObject is Component)
         {
             // first, lets find the type of component were trying to autohook...
-            var type = GetTypeFromProperty(property);
+            Type type = GetTypeFromProperty(property);
             
             // ...then use GetComponent(type) to see if there is one on our object.
-            var component = (Component)root.targetObject;
-            return component.GetComponent(type);
+            Component component = (Component)root.targetObject;
+            switch (AutoHookAttribute.Context)
+            {
+                case Context.Self:
+                    return component.GetComponent(type);
+                case Context.Child:
+                    return component.GetComponentInChildren(type);
+                case Context.Parent:
+                    return component.GetComponentInParent(type);
+            }
         }
         else
         {
@@ -69,13 +97,13 @@ public class AutohookPropertyDrawer : PropertyDrawer
     /// </summary>
     /// <param name="property"></param>
     /// <returns></returns>
-    private static System.Type GetTypeFromProperty(SerializedProperty property)
+    private static Type GetTypeFromProperty(SerializedProperty property)
     {
         // first, lets get the Type of component this serialized property is part of...
-        var parentComponentType = property.serializedObject.targetObject.GetType();
+        Type parentComponentType = property.serializedObject.targetObject.GetType();
         // ... then, using reflection well get the raw field info of the property this
         // SerializedProperty represents...
-        var fieldInfo = parentComponentType.GetField(property.propertyPath);
+        FieldInfo fieldInfo = parentComponentType.GetField(property.propertyPath, BINDIN_FLAGS);
         // ... using that we can return the raw .net type!
         return fieldInfo.FieldType;
     }
