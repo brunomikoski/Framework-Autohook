@@ -27,4 +27,4 @@ public class AutohookTest : MonoBehaviour
 
 You can watch a demo of this in action here https://youtu.be/faVt09NGzws
 
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/A08215TT)
+-> Support the original creator [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/A08215TT)
