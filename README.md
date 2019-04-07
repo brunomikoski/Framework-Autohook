@@ -1,6 +1,13 @@
 Original idea from @LotteMakesStuff:
 https://gist.github.com/LotteMakesStuff/d6a9a4944fc667e557083108606b7d22
 
+Updates
+ - Created as a repository so can be used as submodule in projects
+ - Added support for private / serialized fiels
+ - Added drawing type after the hook (Hidden, Disabled, Visible)
+ - Added context to the component (Self, Child, Parent)
+ 
+
 heres a tiny little example of how to use it
 ```C#
 public class AutohookTest : MonoBehaviour
