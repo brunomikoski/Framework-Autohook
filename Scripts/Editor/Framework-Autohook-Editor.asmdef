@@ -1,0 +1,14 @@
+{
+    "name": "Framework-Autohook-Editor",
+    "references": [
+        "Framework-Autohook"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}

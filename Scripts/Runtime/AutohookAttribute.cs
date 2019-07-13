@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Framework.AutoHook
+namespace BrunoMikoski.Framework.AutoHook
 {
     public enum Context
     {
@@ -11,13 +11,15 @@ namespace Framework.AutoHook
 
     public enum Visibility
     {
-        Visible = 0,
-        Disabled = 1,
-        Hidden = 2
+        Default = 0,
+        Visible = 1,
+        Disabled = 2,
+        Hidden = 4
     }
 
     public sealed class AutohookAttribute : PropertyAttribute
     {
+
         private readonly Context context = Context.Self;
         public Context Context { get { return context; } }
         private readonly Visibility visibility = Visibility.Hidden;
@@ -26,15 +28,16 @@ namespace Framework.AutoHook
         public AutohookAttribute()
         {
             context = Context.Self;
-            visibility = Visibility.Hidden;
+            visibility = Visibility.Default;
         }
 
-        public AutohookAttribute(Context context)
+        public AutohookAttribute(Context context) : this ()
         {
             this.context = context;
+
         }
 
-        public AutohookAttribute(Visibility visibility)
+        public AutohookAttribute(Visibility visibility): this ()
         {
             this.visibility = visibility;
         }

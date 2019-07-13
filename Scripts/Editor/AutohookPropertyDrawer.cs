@@ -3,11 +3,13 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Framework.AutoHook
+namespace BrunoMikoski.Framework.AutoHook
 {
-    [CustomPropertyDrawer(typeof(AutohookAttribute))]
+   [CustomPropertyDrawer(typeof(AutohookAttribute))]
     public sealed class AutohookPropertyDrawer : PropertyDrawer
     {
+        private Visibility visibility;
+
         private const BindingFlags BINDIN_FLAGS = BindingFlags.IgnoreCase
                                                   | BindingFlags.Public
                                                   | BindingFlags.Instance
@@ -23,21 +25,33 @@ namespace Framework.AutoHook
                 if (property.objectReferenceValue == null)
                     property.objectReferenceValue = component;
 
-                if (AutoHookAttribute.Visibility == Visibility.Hidden)
+                if (visibility == Visibility.Hidden)
                     return;
             }
 
             bool guiEnabled = GUI.enabled;
-            if (AutoHookAttribute.Visibility == Visibility.Disabled)
+            if (visibility == Visibility.Disabled && component != null)
                 GUI.enabled = false;
             EditorGUI.PropertyField(position, property, label);
             GUI.enabled = guiEnabled;
         }
 
+        private void UpdateVisibility()
+        {
+            visibility = AutoHookAttribute.Visibility;
+            if (visibility == Visibility.Default)
+            {
+                visibility = (Visibility)EditorPrefs.GetInt(AutoHookEditorSettings.AUTO_HOOK_VISIBILITY_KEY,
+                    0);
+            }
+        }
+
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
+            UpdateVisibility();
+
             Component component = FindAutohookTarget(property);
-            if (component != null && AutoHookAttribute.Visibility == Visibility.Hidden)
+            if (component != null && visibility == Visibility.Hidden)
                 return 0;
 
             return base.GetPropertyHeight(property, label);
@@ -57,9 +71,15 @@ namespace Framework.AutoHook
                     case Context.Self:
                         return component.GetComponent(type);
                     case Context.Child:
-                        return component.GetComponentInChildren(type);
+                    {
+                        Component[] options = component.GetComponentsInChildren(type, true);
+                        return options.Length > 0 ? options[0] : null;
+                    }
                     case Context.Parent:
-                        return component.GetComponentInParent(type);
+                    {
+                        Component[] options = component.GetComponentsInParent(type, true);
+                        return options.Length > 0 ? options[0] : null;
+                    }
                 }
             }
             else
