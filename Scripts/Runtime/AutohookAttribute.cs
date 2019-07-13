@@ -25,16 +25,19 @@ namespace BrunoMikoski.Framework.AutoHook
         private readonly Visibility visibility = Visibility.Hidden;
         public Visibility Visibility { get { return visibility; } }
 
+        private bool ignoreSelf = true;
+        public bool IgnoreSelf { get => ignoreSelf; }
+
         public AutohookAttribute()
         {
             context = Context.Self;
             visibility = Visibility.Default;
+            ignoreSelf = true;
         }
 
         public AutohookAttribute(Context context) : this ()
         {
             this.context = context;
-
         }
 
         public AutohookAttribute(Visibility visibility): this ()
@@ -46,6 +49,12 @@ namespace BrunoMikoski.Framework.AutoHook
         {
             this.context = context;
             this.visibility = visibility;
+        }
+
+        public AutohookAttribute(Context context, bool ignoreSelf)
+        {
+            this.context = context;
+            this.ignoreSelf = ignoreSelf;
         }
     }
 }
