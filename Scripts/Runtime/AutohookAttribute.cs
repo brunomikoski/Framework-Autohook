@@ -6,7 +6,9 @@ namespace BrunoMikoski.Framework.AutoHook
     {
         Self = 0,
         Parent = 1,
-        Child = 2
+        Child = 2,
+        Root = 3,
+        PrefabRoot = 4,
     }
 
     public enum Visibility
@@ -19,25 +21,21 @@ namespace BrunoMikoski.Framework.AutoHook
 
     public sealed class AutohookAttribute : PropertyAttribute
     {
-
         private readonly Context context = Context.Self;
         public Context Context { get { return context; } }
         private readonly Visibility visibility = Visibility.Hidden;
         public Visibility Visibility { get { return visibility; } }
 
-        private bool ignoreSelf = true;
-        public bool IgnoreSelf { get => ignoreSelf; }
-
         public AutohookAttribute()
         {
             context = Context.Self;
             visibility = Visibility.Default;
-            ignoreSelf = true;
         }
 
         public AutohookAttribute(Context context) : this ()
         {
             this.context = context;
+
         }
 
         public AutohookAttribute(Visibility visibility): this ()
@@ -49,12 +47,6 @@ namespace BrunoMikoski.Framework.AutoHook
         {
             this.context = context;
             this.visibility = visibility;
-        }
-
-        public AutohookAttribute(Context context, bool ignoreSelf)
-        {
-            this.context = context;
-            this.ignoreSelf = ignoreSelf;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace BrunoMikoski.Framework.AutoHook
 
         private static VisibilityInSettings selectedVisibility;
 
-        [PreferenceItem("Autohook")]
+        [PreferenceItem("Autohook Settings")]
         public static void PreferencesGUI()
         {
             if (!defaultVisibilityIndex.HasValue)

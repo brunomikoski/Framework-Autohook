@@ -1,28 +1,25 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 namespace BrunoMikoski.Framework.AutoHook
 {
-   [CustomPropertyDrawer(typeof(AutohookAttribute), true)]
+    [CustomPropertyDrawer(typeof(AutohookAttribute))]
     public sealed class AutohookPropertyDrawer : PropertyDrawer
     {
         private Visibility visibility;
 
-        private const BindingFlags BINDING_FLAGS = BindingFlags.IgnoreCase
+        private const BindingFlags BINDIN_FLAGS = BindingFlags.IgnoreCase
                                                   | BindingFlags.Public
                                                   | BindingFlags.Instance
                                                   | BindingFlags.NonPublic;
 
         private AutohookAttribute AutoHookAttribute { get { return (AutohookAttribute)attribute; } }
-        private List<Component> componentsList = new List<Component>(100);
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            Component component = FindAutohookTargets(property).First();
+            Component component = FindAutohookTarget(property);
             if (component != null)
             {
                 if (property.objectReferenceValue == null)
@@ -46,7 +43,6 @@ namespace BrunoMikoski.Framework.AutoHook
             {
                 visibility = (Visibility)EditorPrefs.GetInt(AutoHookEditorSettings.AUTO_HOOK_VISIBILITY_KEY,
                     0);
-
             }
         }
 
@@ -54,17 +50,16 @@ namespace BrunoMikoski.Framework.AutoHook
         {
             UpdateVisibility();
 
-            Component component = FindAutohookTargets(property).First();
+            Component component = FindAutohookTarget(property);
             if (component != null && visibility == Visibility.Hidden)
                 return 0;
 
             return base.GetPropertyHeight(property, label);
         }
 
-        private List<Component> FindAutohookTargets(SerializedProperty property)
+        private Component FindAutohookTarget(SerializedProperty property)
         {
             SerializedObject root = property.serializedObject;
-            componentsList.Clear();
 
             if (root.targetObject is Component)
             {
@@ -74,49 +69,24 @@ namespace BrunoMikoski.Framework.AutoHook
                 switch (AutoHookAttribute.Context)
                 {
                     case Context.Self:
-                    {
-                        component.GetComponents(type, componentsList);
-                        return componentsList;
-                    }
-
+                        return component.GetComponent(type);
                     case Context.Child:
                     {
-                        componentsList.Clear();
-                        componentsList.AddRange(component.GetComponentsInChildren(type, true));
-
-                        if (AutoHookAttribute.IgnoreSelf)
-                        {
-                            for (int i = 0; i < componentsList.Count; i++)
-                            {
-                                Component foundComponent = componentsList[i];
-                                if (foundComponent.gameObject != component.gameObject)
-                                    continue;
-
-                                componentsList.RemoveAt(i);
-                                break;
-                            }
-                        }
-                        return componentsList;
+                        Component[] options = component.GetComponentsInChildren(type, true);
+                        return options.Length > 0 ? options[0] : null;
                     }
                     case Context.Parent:
                     {
-                        componentsList.Clear();
-                        componentsList.AddRange(component.GetComponentsInParent(type, true));
-
-                        if (AutoHookAttribute.IgnoreSelf)
-                        {
-                            for (int i = 0; i < componentsList.Count; i++)
-                            {
-                                Component foundComponent = componentsList[i];
-                                if (foundComponent.gameObject != component.gameObject)
-                                    continue;
-
-                                componentsList.RemoveAt(i);
-                                break;
-
-                            }
-                        }
-                        return componentsList;
+                        Component[] options = component.GetComponentsInParent(type, true);
+                        return options.Length > 0 ? options[0] : null;
+                    }
+                    case Context.Root:
+                    {
+                        return component.transform.root.GetComponent(type);
+                    }
+                    case Context.PrefabRoot:
+                    {
+                        return PrefabUtility.GetOutermostPrefabInstanceRoot(component.transform).GetComponent(type);
                     }
                 }
             }
@@ -131,7 +101,7 @@ namespace BrunoMikoski.Framework.AutoHook
         private static Type GetTypeFromProperty(SerializedProperty property)
         {
             Type parentComponentType = property.serializedObject.targetObject.GetType();
-            FieldInfo fieldInfo = parentComponentType.GetField(property.propertyPath, BINDING_FLAGS);
+            FieldInfo fieldInfo = parentComponentType.GetField(property.propertyPath, BINDIN_FLAGS);
             return fieldInfo.FieldType;
         }
     }
