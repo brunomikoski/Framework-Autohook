@@ -1,5 +1,5 @@
 {
-    "name": "Framework-Autohook-Editor",
+    "name": "Framework-Autohook.Editor",
     "references": [
         "Framework-Autohook"
     ],
