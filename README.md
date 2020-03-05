@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/badawe/Framework-Autohook/blob/develop/LICENSE)
+
 Original idea from @LotteMakesStuff:
 https://gist.github.com/LotteMakesStuff/d6a9a4944fc667e557083108606b7d22
 
